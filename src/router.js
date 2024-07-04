@@ -1,29 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from './stores/authStore';
+import authRoutes from './routes/authRoutes';
+import homeRoutes from './routes/homeRoutes'; 
 
 const routes = [
-    {
-        path: '/home',
-        name: 'HomeMenu',
-        component: () => import('./pages/HomeMenu.vue'),
-        meta: { requiresAuth: true },
-    },
-    {
-        path: '/login',
-        name: 'Login',
-        component: () => import('./pages/auth/LogIn.vue'),
-        // meta: { transition: 'fade' },
-    },
-    {
-        path: '/reset-password',
-        name: 'ResetPassword',
-        component: () => import('./pages/auth/password_reset/RequestPasswordReset.vue'),
-    },
-    {
-        path: '/complete-password-reset/:uid/:token',
-        name: 'CompletePasswordReset',
-        component: () => import('./pages/auth/password_reset/CompletePasswordReset.vue'),
-    },
+    ...authRoutes,
+    ...homeRoutes,
     {
         path: '/not-found',
         name: 'NotFound',
