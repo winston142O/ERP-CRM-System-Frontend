@@ -2,7 +2,7 @@
 <Transition name="modal">
     <div v-if="show" class="modal-mask">
         <div class="modal-wrapper">
-            <div class="modal-container">
+            <div class="modal-container" :style="{ width: computedWidth }">
                 <div class="modal-header">
                     <slot name="header">
                         default header
@@ -29,7 +29,16 @@
 <script>
 export default {
     props: {
-        show: Boolean
+        show: Boolean,
+        width: {
+            type: String,
+            default: '300px'
+        }
+    },
+    computed: {
+        computedWidth() {
+            return this.width;
+        }
     }
 }
 </script>
