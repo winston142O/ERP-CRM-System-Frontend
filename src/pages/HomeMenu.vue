@@ -21,7 +21,7 @@ export default {
 
 <style scoped>
 .page-content {
-    margin-top: 2.5em;
+    margin-top: 5px;
     padding: 1em;
     transition: 0.3s ease;
 }

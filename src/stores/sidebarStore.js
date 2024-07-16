@@ -2,14 +2,14 @@ import { defineStore } from 'pinia'
 
 export const useSidebarStore = defineStore('sidebar', {
     state: () => ({
-        collapsed: false,
+        collapsed: JSON.parse(localStorage.getItem('sidebarCollapsed')) || false,
         SIDEBAR_WIDTH: 220,
         SIDEBAR_WIDTH_COLLAPSED: 60,
     }),
     actions: {
         toggleSidebar() {
+            localStorage.setItem('sidebarCollapsed', !this.collapsed);
             this.collapsed = !this.collapsed;
-            console.log('Sidebar collapsed:', this.collapsed);
         }
     },
     getters: {

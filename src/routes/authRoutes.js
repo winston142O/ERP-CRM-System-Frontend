@@ -13,5 +13,10 @@ export default [
         path: '/complete-password-reset/:uid/:token',
         name: 'CompletePasswordReset',
         component: () => import('../pages/auth/password_reset/CompletePasswordReset.vue'),
+    },
+    {
+        path: '/request-account',
+        name: 'RequestAccount',
+        component: () => import('../pages/auth/RequestAccount.vue'),
     }
 ];

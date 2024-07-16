@@ -1,12 +1,15 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode'; // Correct import for jwt-decode
+
+const BASE_URL = process.env.VUE_APP_DJANGO_API_URL;
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
         userId: JSON.parse(localStorage.getItem('user')) || null,
         accessToken: localStorage.getItem('accessToken') || null,
         refreshToken: localStorage.getItem('refreshToken') || null,
+        department: JSON.parse(localStorage.getItem('department')) || null,
+        title: JSON.parse(localStorage.getItem('title')) || null,
     }),
     actions: {
         setUserId(user) {
@@ -18,72 +21,69 @@ export const useAuthStore = defineStore('auth', {
         setRefreshToken(token) {
             this.refreshToken = token;
         },
-        checkTokenValidity() {
+        async checkTokenValidity() {
             if (this.accessToken) {
                 try {
-                    const decodedToken = jwtDecode(this.accessToken);
-                    if (Date.now() >= decodedToken.exp * 1000) {
-                        // Token has expired, perform logout
-                        this.logout();
-                        return false; // Token is not valid
-                    }
-                    return true; // Token is valid
+                    await axios.post(`${BASE_URL}/auth/token/verify/`, { token: this.accessToken });
+                    return true;
                 } catch (error) {
-                    console.error('Error decoding JWT:', error);
-                    this.logout();
-                    return false; // Token is not valid
+                    return false;
                 }
+            } else {
+                return false; // No token available
             }
-            return false; // No token available
         },
-        refreshToken() {
+        async refreshAccToken() {
             if (this.refreshToken) {
-                // Make a request to refresh the access token
-                axios.post('/auth/refresh/', { refresh: this.refreshToken })
-                    .then(response => {
-                        this.accessToken = response.data.access;
-                        localStorage.setItem('accessToken', this.accessToken);
-                    })
-                    .catch(() => {
-                        this.logout();
-                    });
+                try {
+                    const response = await axios.post(`${BASE_URL}/auth/token/refresh/`, { refresh: this.refreshToken });
+                    this.accessToken = response.data.access;
+                    localStorage.setItem('accessToken', this.accessToken);
+                } catch (error) {
+                    this.logout();
+                    throw error;
+                }
+            } else {
+                this.logout();
+                throw new Error('No refresh token available');
             }
         },
-        login(userData) {
-            this.userId = userData.userId;
-            this.accessToken = userData.accessToken;
-            this.refreshToken = userData.refreshToken;
-            
+        login(userData, roleData) {
+            const { userId, accessToken, refreshToken } = userData;
+            const { department, title } = roleData;
+
+            this.userId = userId;
+            this.accessToken = accessToken;
+            this.refreshToken = refreshToken;
+            this.department = department;
+            this.title = title;
+
             localStorage.setItem('user', JSON.stringify(this.userId));
             localStorage.setItem('accessToken', this.accessToken);
             localStorage.setItem('refreshToken', this.refreshToken);
+            localStorage.setItem('department', JSON.stringify(this.department));
+            localStorage.setItem('title', JSON.stringify(this.title));
         },
         logout() {
             this.userId = null;
             this.accessToken = null;
             this.refreshToken = null;
+            this.department = null;
+            this.title = null;
+
             localStorage.removeItem('user');
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
-            console.log('Logged out');
+            localStorage.removeItem('department');
+            localStorage.removeItem('title');
         }
     },
     getters: {
-        // Check that there is a valid token
-        isAuthenticated() {
-            return this.accessToken && this.checkTokenValidity();
+        async isAuthenticated() {
+            return await this.checkTokenValidity();
+        },
+        async isAuthAdmin() {
+            return (await this.isAuthenticated) && this.title === 'System Administrator';
         }
     },
 });
-
-// Set up Axios interceptor
-axios.interceptors.response.use(
-    response => response,
-    error => {
-        const authStore = useAuthStore();
-        if (error.response && error.response.status === 401) {
-            authStore.logout();
-        }
-        return Promise.reject(error);
-    }
-);

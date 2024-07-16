@@ -62,6 +62,7 @@ export default {
                     toast.success(message, {
                         timeout: 5000
                     });
+                    this.loading = false;
                 })
                 .catch(() => {
                     const toast = useToast();

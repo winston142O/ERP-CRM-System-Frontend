@@ -6,6 +6,7 @@
     <SideBarLink to="/analytics" icon="fas fa-chart-bar">Analytics</SideBarLink>
     <SideBarLink to="/friends" icon="fas fa-users">Friends</SideBarLink>
     <SideBarLink to="/image" icon="fas fa-image">Images</SideBarLink>
+    <SideBarLink to="/admin-dashboard" icon="fa-solid fa-gear">Administration</SideBarLink>
 
     <!-- Logout icon -->
     <span class="logout-icon" @click="showModal = true">
@@ -23,7 +24,7 @@
     </span>
 
     <!-- PopUpModal Component -->
-    <PopUpModal :show="showModal">
+    <PopUpModal :show="showModal" width="300px">
         <template v-slot:header>
             <div style="display: flex; justify-content: space-between; gap: 90%; align-items: flex-start">
                 <h3 style="font-weight: bold; color: #3B5EAB;">Warning!</h3>
