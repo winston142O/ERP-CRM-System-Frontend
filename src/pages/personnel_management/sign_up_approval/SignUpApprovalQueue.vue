@@ -3,8 +3,19 @@
     <template v-slot:contents>
         <h1 style="font-weight: bold; text-align: left; margin-bottom: 25px; margin-top: 0px;">Review Sign-up Requests</h1>
         <div class="table-controllers">
-            <div class="search-container">
-                <input type="text" class="form-control" placeholder="Search by name or email..." />
+            <div class="search-container" style="width: 100%;">
+                <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Search by name..."
+                    v-model="filters.searchName"
+                />
+                <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Search by email..."
+                    v-model="filters.searchEmail"
+                />
             </div>
             <div class="pagination-container">
                 <button :disabled="previousPage == null" class="btn btn-primary">
@@ -54,6 +65,15 @@
                 </tbody>
             </table>
         </div>
+        <div class="new-employee-section">
+            <p>Is there someone you'd like to invite?</p>
+            <router-link to="/personnel_management/invite-new-employee">
+                <button class="btn btn-primary">
+                    <i class="fa-solid fa-plus"></i> Invite New Employee
+                </button>
+            </router-link>
+        </div>
+
         <PopUpModal :show="modalOpts.showModal" width="650px">
             <template v-slot:header>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -62,7 +82,7 @@
             </template>
 
             <template v-slot:body>
-                <p style="font-size: large; color: black; text-align: left;">{{ modalOpts.modalBody }}</p>
+                <p style="color: black; text-align: left;">{{ modalOpts.modalBody }}</p>
                 <div class="request-container">
                     <div class="signup-request-data">
                         <p><strong>Username:</strong> {{ this.modalOpts.selectedRequest.username }}</p>
@@ -73,13 +93,24 @@
                     
                     <div v-if="approveCurrentRequest" class="role-selection-form">
                         <label for="department">Select Department:</label>
-                        <select id="department" class="form-select" v-model="modalOpts.departmentId">
-                            <option v-for="department in departments" :key="department.id" :value="department.id">{{ department.department_name }}</option>
-                        </select>
+                        <v-select
+                            style="width: 100%;"
+                            :options="departments"
+                            v-model="modalOpts.departmentId"
+                            label="department_name"
+                            :reduce="department => department.id"
+                            placeholder="Select a department"
+                        ></v-select>
+
                         <label style="margin-top: 20px;" for="title">Select Title:</label>
-                        <select id="title" class="form-select" v-model="modalOpts.titleId">
-                            <option v-for="title in titles" :key="title.id" :value="title.id">{{ title.title_name }}</option>
-                        </select>
+                        <v-select
+                            style="width: 100%;"
+                            :options="titles"
+                            v-model="modalOpts.titleId"
+                            label="title_name"
+                            :reduce="title => title.id"
+                            placeholder="Select a title"
+                        ></v-select>
                     </div>
                 </div>
             </template>
@@ -102,6 +133,7 @@ import { useToast } from 'vue-toastification';
 import { useAuthStore } from '@/stores/authStore';
 import { formatDate } from '@/utils/dateUtils';
 import PopUpModal from '@/components/ui/PopUpModal.vue';
+import { populateRoleDropdowns } from '@/utils/api_utils/personnelManagementUtils';
 
 export default {
     components: {
@@ -127,54 +159,43 @@ export default {
                 departmentId: null,
                 titleId: null
             },
+            filters: {
+                searchName: '',
+                searchEmail: '',
+            },
             departments: [],
             titles: [],
             baseAPI_URL: process.env.VUE_APP_DJANGO_API_URL,
             approveCurrentRequest: false
         };
     },
-    mounted() {
+    watch: {
+        filters: {
+            handler: 'getInitialSignUpRequests',
+            deep: true,
+        },
+    },
+    async mounted() {
+        // Retrieve the dropdown options for departments and titles
+        let dropdownOpts = await this.populateRoleDropdowns();
+        this.departments = dropdownOpts.departmentOpts;
+        this.titles = dropdownOpts.titleOpts;
+        
+        // Push the user back to the previous page if the titles and departments are not populated
+        if (this.departments.length === 0 || this.titles.length === 0) {
+            this.$router.push('/admin-dashboard');
+        }
+
         this.getInitialSignUpRequests();
-        this.populateDropdowns();
     },
     methods: {
         formatDate,
-        async populateDropdowns() {
-            const authStore = useAuthStore();
-            
-            if (await this.ensureValidToken(authStore)) {
-                axios.get(`${this.baseAPI_URL}/personnel/dropdown-options/`, {
-                    headers: { 'Authorization': `Bearer ${authStore.accessToken}` }
-                })
-                .then(response => {
-                    // Get the departments
-                    this.departments = response.data.departments;
-                    
-                    // Extract the titles from each department
-                    this.departments.forEach(department => {
-                        this.titles.push(...department.titles);
-                    });
-                    
-                    console.log(this.departments);
-                    console.log(this.titles);
-                })
-                .catch(error => {
-                    console.error(error);
-                    this.toast.error('An error occurred while fetching departments and roles. Please try again later.', {
-                        timeout: 2500,
-                    });
-                });
-            } else {
-                this.toast.error('Unable to fetch departments and roles due to authentication issues. Please log in again.', {
-                    timeout: 2500,
-                });
-            }
-        },
+        populateRoleDropdowns,
         async getInitialSignUpRequests() {
             
             const authStore = useAuthStore();
             
-            if (await this.ensureValidToken(authStore)) {
+            if (await authStore.ensureValidToken(authStore)) {
                 this.getSignUpRequests(`${this.baseAPI_URL}/auth/sign-up-approval-queue/`, authStore.accessToken);
             } else {
                 this.toast.error('Unable to fetch sign-up requests due to authentication issues. Please log in again.', {
@@ -182,22 +203,14 @@ export default {
                 });
             }
         },
-        async ensureValidToken(authStore) {
-            if (!authStore.checkTokenValidity()) {
-                try {
-                    await authStore.refreshAccToken();
-                    return authStore.checkTokenValidity();
-                } catch (error) {
-                    console.error('Error refreshing token:', error);
-                    authStore.logout();
-                    return false;
-                }
-            }
-            return true;
-        },
         getSignUpRequests(url, token) {
+            const params = {
+                name: this.filters.searchName,
+                email: this.filters.searchEmail,
+            };
+
             axios.get(url, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token}` }, params
             })
             .then(response => {
                 const { results, count, next, previous } = response.data;
@@ -342,5 +355,19 @@ h1 {
     width: 40%;
     flex-direction: column;
     align-items: flex-start;
+}
+
+.search-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 25px;
+}
+
+.new-employee-section {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 15px;
 }
 </style>

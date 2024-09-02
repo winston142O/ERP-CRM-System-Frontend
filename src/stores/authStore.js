@@ -76,7 +76,20 @@ export const useAuthStore = defineStore('auth', {
             localStorage.removeItem('refreshToken');
             localStorage.removeItem('department');
             localStorage.removeItem('title');
-        }
+        },
+        async ensureValidToken() {
+            if (!this.checkTokenValidity()) {
+                try {
+                    await this.refreshAccToken();
+                    return this.checkTokenValidity();
+                } catch (error) {
+                    console.error('Error refreshing token:', error);
+                    this.logout();
+                    return false;
+                }
+            }
+            return true;
+        },
     },
     getters: {
         async isAuthenticated() {

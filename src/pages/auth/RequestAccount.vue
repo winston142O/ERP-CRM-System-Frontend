@@ -5,7 +5,8 @@
     </template>
     <template v-slot:auth-content>
         <h1 style="color: black; margin-bottom: 15px;" class="card-title">Request an Account</h1>
-        <p style="margin-bottom: 30px;" class="card-text">Submit the following data in order to request an account to your organization.</p>
+        <p v-if="!submitted" style="margin-bottom: 30px;" class="card-text">Submit the following data in order to request an account to your organization.</p>
+        <p v-else style="margin-bottom: 30px;" class="card-text">Your request has been submitted. Please wait for approval.</p>
 
         <transition name="fade">
             <form v-if="!submitted" @submit.prevent="submitForm" style="line-height: 2.5; text-align: left;">

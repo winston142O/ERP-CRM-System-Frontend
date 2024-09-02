@@ -11,6 +11,25 @@
                     <p>Review new accounts and set their roles</p>
                 </template>
             </MenuActionCard>
+            
+            <MenuActionCard to="/employee-list" icon="fa-solid fa-address-book">
+                <template v-slot:action-title>
+                    <h3 style="font-weight: bold;">Employee List</h3>
+                </template>
+                <template v-slot:action-body-content>
+                    <p>Review the list of employees currently enrolled in the Software system.</p>
+                </template>
+            </MenuActionCard>
+            
+            <MenuActionCard to="/personnel_management/invite-new-employee" icon="fa-solid fa-envelope">
+                <template v-slot:action-title>
+                    <h3 style="font-weight: bold;">Invite New User</h3>
+                </template>
+                <template v-slot:action-body-content>
+                    <p>Manually enroll and invite a new employee to the Software system.</p>
+                </template>
+            </MenuActionCard>
+            
         </div>
     </template>
 </SidebarLayout>
@@ -42,6 +61,7 @@ export default {
     align-items: flex-start;
     flex-wrap: wrap;
     margin-left: 2%;
+    gap: 25px;
 }
 
 h1 {
