@@ -1,6 +1,6 @@
 # ERP/CRM Web App
 
-This project is mean to be an all-purpose take on enterprise management software that allows for 
+This project is meant to be an all-purpose take on enterprise management software that allows for 
 complete customization of it's capabilities and what it will measure. Making it a very flexible asset
 for entrepises that are in need of a management platform.
 
