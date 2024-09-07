@@ -134,6 +134,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { formatDate } from '@/utils/dateUtils';
 import PopUpModal from '@/components/ui/PopUpModal.vue';
 import { populateRoleDropdowns } from '@/utils/api_utils/personnelManagementUtils';
+import debounce from 'lodash.debounce'
 
 export default {
     components: {
@@ -166,16 +167,28 @@ export default {
             departments: [],
             titles: [],
             baseAPI_URL: process.env.VUE_APP_DJANGO_API_URL,
-            approveCurrentRequest: false
+            approveCurrentRequest: false,
+            authStore: useAuthStore(),
         };
     },
     watch: {
         filters: {
-            handler: 'getInitialSignUpRequests',
+            handler: debounce(function() {
+                this.getSignUpRequests(`${this.baseAPI_URL}/auth/sign-up-approval-queue/`, this.authStore.accessToken);
+            }, 500),
             deep: true,
-        },
+        }
     },
     async mounted() {
+        // Verify that the user is authenticated        
+        if (await this.authStore.ensureValidToken(this.authStore)) {
+            this.getSignUpRequests(`${this.baseAPI_URL}/auth/sign-up-approval-queue/`, this.authStore.accessToken);
+        } else {
+            this.toast.error('Unable to fetch sign-up requests due to authentication issues. Please log in again.', {
+                timeout: 2500,
+            });
+        }
+
         // Retrieve the dropdown options for departments and titles
         let dropdownOpts = await this.populateRoleDropdowns();
         this.departments = dropdownOpts.departmentOpts;
@@ -185,24 +198,10 @@ export default {
         if (this.departments.length === 0 || this.titles.length === 0) {
             this.$router.push('/admin-dashboard');
         }
-
-        this.getInitialSignUpRequests();
     },
     methods: {
         formatDate,
         populateRoleDropdowns,
-        async getInitialSignUpRequests() {
-            
-            const authStore = useAuthStore();
-            
-            if (await authStore.ensureValidToken(authStore)) {
-                this.getSignUpRequests(`${this.baseAPI_URL}/auth/sign-up-approval-queue/`, authStore.accessToken);
-            } else {
-                this.toast.error('Unable to fetch sign-up requests due to authentication issues. Please log in again.', {
-                    timeout: 2500,
-                });
-            }
-        },
         getSignUpRequests(url, token) {
             const params = {
                 name: this.filters.searchName,

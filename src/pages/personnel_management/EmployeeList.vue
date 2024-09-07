@@ -101,6 +101,7 @@ import { useToast } from 'vue-toastification';
 import { useAuthStore } from '@/stores/authStore';
 import SidebarLayout from '@/components/layouts/SidebarLayout.vue';
 import { populateRoleDropdowns } from '@/utils/api_utils/personnelManagementUtils';
+import debounce from 'lodash.debounce'
 
 export default {
     components: {
@@ -142,9 +143,11 @@ export default {
     },
     watch: {
         filters: {
-            handler: 'applyFilters',
+            handler: debounce(function() {
+                this.applyFilters();
+            }, 500),
             deep: true,
-        },
+        }
     },
     methods: {
         populateRoleDropdowns,
