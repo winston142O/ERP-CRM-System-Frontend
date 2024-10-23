@@ -1,12 +1,10 @@
 <template>
 <div class="sidebar" :style="{ width: sidebarWidthPx }" style="box-shadow: rgba(0, 0, 0, 0.3) 0px 19px 38px, rgba(0, 0, 0, 0.22) 0px 15px 12px;">
 
-    <SideBarLink to="/home" icon="fas fa-home">Home</SideBarLink>
-    <SideBarLink to="/dashboard" icon="fas fa-columns">Dashboard</SideBarLink>
-    <SideBarLink to="/analytics" icon="fas fa-chart-bar">Analytics</SideBarLink>
-    <SideBarLink to="/friends" icon="fas fa-users">Friends</SideBarLink>
-    <SideBarLink to="/image" icon="fas fa-image">Images</SideBarLink>
-    <SideBarLink to="/admin-dashboard" icon="fa-solid fa-gear">Administration</SideBarLink>
+    <!-- Sidebar Items -->
+    <SideBarLink v-for="item in sidebarItems" :key="item.to" :to="item.to" :icon="item.icon">
+        {{ item.title }}
+    </SideBarLink>
 
     <!-- Logout icon -->
     <span class="logout-icon" @click="showModal = true">
@@ -65,7 +63,16 @@ export default {
     data() {
         return {
             toast: useToast(),
-            showModal: false
+            showModal: false,
+            sidebarItems: [
+                { to: '/home', icon: 'fas fa-home', title: 'Home' },
+                { to: '/dashboard', icon: 'fas fa-columns', title: 'Dashboard' },
+                { to: '/analytics', icon: 'fas fa-chart-bar', title: 'Analytics' },
+                { to: '/friends', icon: 'fas fa-users', title: 'Friends' },
+                { to: '/image', icon: 'fas fa-image', title: 'Images' },
+                { to: '/admin-dashboard', icon: 'fa-solid fa-gear', title: 'Administration' },
+                { to: '/my-profile', icon: 'fa-solid fa-user', title: 'My Profile' },
+            ],
         };
     },
     setup() {

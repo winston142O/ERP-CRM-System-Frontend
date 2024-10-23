@@ -55,8 +55,8 @@
                             <th scope="col">First Name</th>
                             <th scope="col">Last Name</th>
                             <th scope="col">Email</th>
-                            <th scope="col">Department</th>
                             <th scope="col">Title</th>
+                            <th scope="col">Department</th>
                             <th scope="col">Actions</th>
                         </tr>
                     </thead>
@@ -74,8 +74,13 @@
                             <td>
                                 <div class="row-action-container">
                                     <!-- TODO: Employee info view -->
-                                    <button class="btn btn-primary" @click="approveRequest(employee, true)">
-                                        <i class="fa-solid fa-circle-info"></i>
+                                    <router-link :to="{ name: 'EmployeeDetail', params: { emp_id: employee.id } }">
+                                        <button class="btn btn-primary">
+                                            <i class="fa-solid fa-circle-info"></i>
+                                        </button>
+                                    </router-link>
+                                    <button class="btn btn-danger" @click="modalOpts.selectedEmployee = employee">
+                                        <i class="fa-solid fa-x"></i>
                                     </button>
                                 </div>
                             </td>
@@ -91,6 +96,38 @@
                     </button>
                 </router-link>
             </div>
+
+            <!-- Modal para eliminar empleado -->
+            <PopUpModal :show="modalOpts.showModal" width="650px">
+                <template v-slot:header>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="font-weight: bold; color: #3B5EAB;">Eliminar Empleado</h3>
+                    </div>
+                </template>
+
+                <template v-slot:body>
+                    <p style="color: black; text-align: left;">¿De verdad quieres eliminar este empleado?</p>
+                    <div class="selected-emp-container">
+                        <div class="selected-emp-data">
+                            <p><strong>First Name:</strong> {{ this.modalOpts.selectedEmployee.first_name }}</p>
+                            <p><strong>Last Name:</strong> {{ this.modalOpts.selectedEmployee.last_name }}</p>
+                            <p><strong>Email:</strong> {{ this.modalOpts.selectedEmployee.email }}</p>
+                            <p><strong>Title:</strong> {{ this.modalOpts.selectedEmployee.title }}</p>
+                            <p><strong>Department:</strong> {{ this.modalOpts.selectedEmployee.department }}</p>
+                        </div>
+                        
+                        <!-- TODO: Display employee profile pic -->
+                    </div>
+                </template>
+
+                <template v-slot:footer>
+                    <div style="display: flex; justify-content: center; gap: 10px; width: 100%">
+                        <button class="btn btn-danger" style="width: 50%" @click="modalOpts.showModal = false; modalOpts.selectedEmployee = {};">Cancel</button>
+                        <!-- TODO: Delete employee -->
+                        <button class="btn btn-primary" style="width: 50%" @click="console.log('confirmed')">Confirmar</button>
+                    </div>
+                </template>
+            </PopUpModal>
         </template>
     </SidebarLayout>
 </template>
@@ -102,10 +139,12 @@ import { useAuthStore } from '@/stores/authStore';
 import SidebarLayout from '@/components/layouts/SidebarLayout.vue';
 import { populateRoleDropdowns } from '@/utils/api_utils/personnelManagementUtils';
 import debounce from 'lodash.debounce'
+import PopUpModal from '@/components/ui/PopUpModal.vue';
 
 export default {
     components: {
         SidebarLayout,
+        PopUpModal
     },
     name: 'EmployeeList',
     data() {
@@ -127,6 +166,10 @@ export default {
             departments: [],
             titles: [],
             baseAPI_URL: process.env.VUE_APP_DJANGO_API_URL,
+            modalOpts: {
+                showModal: false,
+                selectedEmployee: {},
+            },
         }
     },
     async mounted() {
@@ -134,10 +177,7 @@ export default {
         let dropdownOpts = await this.populateRoleDropdowns();
         this.departments = dropdownOpts.departmentOpts;
         this.titles = dropdownOpts.titleOpts;
-
-        console.log(this.departments);
-        console.log(this.titles);
-
+        
         // Retrieve the employees
         await this.fetchEmployees(`${this.baseAPI_URL}/personnel/employees/`);
     },
@@ -147,7 +187,17 @@ export default {
                 this.applyFilters();
             }, 500),
             deep: true,
-        }
+        },
+        'modalOpts.selectedEmployee': {
+            handler() {
+                // Check if an employee is selected
+                if (Object.keys(this.modalOpts.selectedEmployee).length > 0) {
+                    // Launch the modal if an employee is selected
+                    this.modalOpts.showModal = true;
+                }
+            },
+            deep: true,
+        },
     },
     methods: {
         populateRoleDropdowns,
@@ -162,6 +212,7 @@ export default {
             axios.get(url, { headers: { Authorization: `Bearer ${this.authStore.accessToken}` }, params })
             .then(response => {
                 const { results, count, next, previous } = response.data;
+                console.log(response.data);
 
                 // Update the data
                 this.employees = results;
@@ -222,5 +273,20 @@ h1 {
     flex-direction: column;
     align-items: flex-start;
     margin-top: 15px;
+}
+
+.selected-emp-data {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    flex-direction: column;
+    align-content: flex-start;
+    text-align: left;
+}
+
+.selected-emp-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 25px;
 }
 </style>

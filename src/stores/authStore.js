@@ -6,6 +6,7 @@ const BASE_URL = process.env.VUE_APP_DJANGO_API_URL;
 export const useAuthStore = defineStore('auth', {
     state: () => ({
         userId: JSON.parse(localStorage.getItem('user')) || null,
+        employeeId: JSON.parse(localStorage.getItem('employee')) || null,
         accessToken: localStorage.getItem('accessToken') || null,
         refreshToken: localStorage.getItem('refreshToken') || null,
         department: JSON.parse(localStorage.getItem('department')) || null,
@@ -49,16 +50,18 @@ export const useAuthStore = defineStore('auth', {
             }
         },
         login(userData, roleData) {
-            const { userId, accessToken, refreshToken } = userData;
+            const { userId, employeeId, accessToken, refreshToken } = userData;
             const { department, title } = roleData;
 
             this.userId = userId;
+            this.employeeId = employeeId;
             this.accessToken = accessToken;
             this.refreshToken = refreshToken;
             this.department = department;
             this.title = title;
 
             localStorage.setItem('user', JSON.stringify(this.userId));
+            localStorage.setItem('employee', JSON.stringify(this.employeeId));
             localStorage.setItem('accessToken', this.accessToken);
             localStorage.setItem('refreshToken', this.refreshToken);
             localStorage.setItem('department', JSON.stringify(this.department));
@@ -66,12 +69,14 @@ export const useAuthStore = defineStore('auth', {
         },
         logout() {
             this.userId = null;
+            this.employeeId = null;
             this.accessToken = null;
             this.refreshToken = null;
             this.department = null;
             this.title = null;
 
             localStorage.removeItem('user');
+            localStorage.removeItem('employee');
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
             localStorage.removeItem('department');

@@ -86,6 +86,7 @@ export default {
                 // Retrieve the user_id, access, and refresh tokens from the response
                 let userData = {
                     userId: response.data.user_id,
+                    employeeId: response.data.employee_id,
                     accessToken: response.data.access,
                     refreshToken: response.data.refresh
                 };

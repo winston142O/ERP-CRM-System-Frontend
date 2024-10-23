@@ -118,7 +118,7 @@
             <template v-slot:footer>
                 <div style="display: flex; justify-content: center; gap: 10px; width: 100%">
                     <button class="btn btn-danger" style="width: 50%" @click="modalOpts.showModal = false">Cancel</button>
-                    <button class="btn btn-success" style="width: 50%" @click="confirmApproval">{{ modalOpts.confirmAction }}</button>
+                    <button class="btn btn-primary" style="width: 50%" @click="confirmApproval">{{ modalOpts.confirmAction }}</button>
                 </div>
             </template>
         </PopUpModal>
@@ -173,8 +173,8 @@ export default {
     },
     watch: {
         filters: {
-            handler: debounce(function() {
-                this.getSignUpRequests(`${this.baseAPI_URL}/auth/sign-up-approval-queue/`, this.authStore.accessToken);
+            handler: debounce(async function() {
+                await this.getSignUpRequests(`${this.baseAPI_URL}/auth/sign-up-approval-queue/`, this.authStore.accessToken);
             }, 500),
             deep: true,
         }
@@ -271,7 +271,7 @@ export default {
                     }
                 )
                 .then(() => {
-                    this.getInitialSignUpRequests();
+                    this.getSignUpRequests(`${this.baseAPI_URL}/auth/sign-up-approval-queue/`, this.authStore.accessToken);
 
                     this.toast.success('Sign-up request approved successfully.', {
                         timeout: 2500,
@@ -282,7 +282,7 @@ export default {
                     this.toast.error('An error occurred while approving the sign-up request. Please try again later.', {
                         timeout: 2500,
                     });
-                    this.getInitialSignUpRequests();
+                    this.getSignUpRequests(`${this.baseAPI_URL}/auth/sign-up-approval-queue/`, this.authStore.accessToken);
                 });
             } else {
                 // Reject the sign-up request
@@ -297,7 +297,7 @@ export default {
                 )
                 .then(response => {
                     console.log(response.data);
-                    this.getInitialSignUpRequests();
+                    this.getSignUpRequests(`${this.baseAPI_URL}/auth/sign-up-approval-queue/`, this.authStore.accessToken);
 
                     this.toast.success(`Sign-up request ${this.modalOpts.confirmAction.toLowerCase()} successfully.`, {
                         timeout: 2500,
@@ -307,7 +307,7 @@ export default {
                     this.toast.error('An error occurred while rejecting the sign-up request. Please try again later.', {
                         timeout: 2500,
                     });
-                    this.getInitialSignUpRequests();
+                    this.getSignUpRequests(`${this.baseAPI_URL}/auth/sign-up-approval-queue/`, this.authStore.accessToken);
                 });
             }
         }

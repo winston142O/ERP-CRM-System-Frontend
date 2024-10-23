@@ -22,5 +22,11 @@ export default [
         name: 'EmployeeList',
         component: () => import('../pages/personnel_management/EmployeeList.vue'),
         meta: { requiresAdmin: true },
+    },
+    {
+        path: '/employee/:emp_id',
+        name: 'EmployeeDetail',
+        component: () => import('../pages/personnel_management/EmployeeDetail.vue'),
+        meta: { requiresAdmin: true },
     }
 ];

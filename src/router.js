@@ -4,11 +4,13 @@ import { useAuthStore } from './stores/authStore';
 import authRoutes from './routes/authRoutes';
 import homeRoutes from './routes/homeRoutes'; 
 import adminRoutes from "./routes/adminRoutes";
+import userRoutes from "./routes/userRoutes";
 
 const routes = [
     ...authRoutes,
     ...homeRoutes,
     ...adminRoutes,
+    ...userRoutes,
     {
         path: '/not-found',
         name: 'NotFound',
